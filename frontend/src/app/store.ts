@@ -12,6 +12,7 @@ import {
 import storageModule from 'redux-persist/lib/storage';
 import { usersReducer } from '../features/users/usersSlice';
 import { postsReducer } from '../features/posts/postsSlice';
+import { commentsReducer } from '../features/comments/commentsSlice';
 
 const storage =
   (storageModule as unknown as { default?: typeof storageModule }).default ??
@@ -25,6 +26,7 @@ const usersPersistConfig = {
 
 const rootReducer = combineReducers({
   posts: postsReducer,
+  comments: commentsReducer,
   users: persistReducer(usersPersistConfig, usersReducer),
 });
 

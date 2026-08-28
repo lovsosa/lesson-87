@@ -4,18 +4,38 @@ import { useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { BASE_URL } from '../../constants';
+import { selectUser } from '../users/usersSlice';
 import { fetchOnePost } from './postsThunks';
 import { onePost, onePostLoading } from './postsSlice';
+import {
+  comments,
+  commentCreateLoading,
+  commentsLoading,
+} from '../comments/commentsSlice';
+import { createComment, fetchComments } from '../comments/commentsThunks';
+import CommentForm from '../comments/ui/CommentForm';
 
 const OnePost = () => {
   const { id } = useParams() as { id: string };
   const dispatch = useAppDispatch();
   const post = useAppSelector(onePost);
   const loading = useAppSelector(onePostLoading);
+  const user = useAppSelector(selectUser);
+  const commentItems = useAppSelector(comments);
+  const commentsFetching = useAppSelector(commentsLoading);
+  const commentSending = useAppSelector(commentCreateLoading);
 
   useEffect(() => {
     dispatch(fetchOnePost(id));
+    dispatch(fetchComments(id));
   }, [dispatch, id]);
+
+  const addComment = async (text: string) => {
+    const result = await dispatch(createComment({ post: id, text }));
+    if (createComment.fulfilled.match(result)) {
+      dispatch(fetchComments(id));
+    }
+  };
 
   if (loading) {
     return (
@@ -35,7 +55,7 @@ const OnePost = () => {
 
   return (
     <Container className="py-4" style={{ maxWidth: 640 }}>
-      <Card>
+      <Card className="mb-4">
         {post.image && (
           <Card.Img
             variant="top"
@@ -64,6 +84,36 @@ const OnePost = () => {
           )}
         </Card.Body>
       </Card>
+
+      <h2 className="h5 mb-3">Комментарии ({commentItems.length})</h2>
+
+      {commentsFetching ? (
+        <div className="text-center py-3">
+          <Spinner animation="border" size="sm" role="status" />
+        </div>
+      ) : commentItems.length === 0 ? (
+        <p className="text-muted">Комментариев пока нет</p>
+      ) : (
+        <div className="d-flex flex-column gap-2 mb-4">
+          {commentItems.map((comment) => (
+            <Card key={comment._id} body>
+              <div className="small text-muted mb-1">
+                {comment.user?.username ?? 'Аноним'} ·{' '}
+                {dayjs(comment.createdAt).format('DD.MM.YYYY HH:mm')}
+              </div>
+              <div style={{ whiteSpace: 'pre-wrap' }}>{comment.text}</div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {user ? (
+        <CommentForm onSubmit={addComment} loading={commentSending} />
+      ) : (
+        <Alert variant="secondary">
+          Войдите, чтобы оставить комментарий.
+        </Alert>
+      )}
     </Container>
   );
 };

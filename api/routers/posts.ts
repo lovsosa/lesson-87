@@ -2,6 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import { imagesUpload } from '../multer';
 import Post from '../models/Post';
+import Comment from '../models/Comment';
 import auth, { RequestWithUser } from '../middlewares/auth';
 
 const postsRouter = express.Router();
@@ -10,8 +11,24 @@ postsRouter.get('/', async (_req, res) => {
   try {
     const posts = await Post.find()
       .sort({ createdAt: -1 })
-      .populate('user', 'username');
-    res.send(posts);
+      .populate('user', 'username')
+      .lean();
+
+    const counts = await Comment.aggregate<{
+      _id: mongoose.Types.ObjectId;
+      count: number;
+    }>([{ $group: { _id: '$post', count: { $sum: 1 } } }]);
+
+    const countByPost = new Map(
+      counts.map((c) => [c._id.toString(), c.count]),
+    );
+
+    const result = posts.map((post) => ({
+      ...post,
+      commentsCount: countByPost.get(post._id.toString()) ?? 0,
+    }));
+
+    res.send(result);
   } catch {
     res.sendStatus(500);
   }

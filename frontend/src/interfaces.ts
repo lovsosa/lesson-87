@@ -9,6 +9,7 @@ export interface Post {
   title: string;
   description?: string;
   image?: string | null;
+  commentsCount?: number;
   createdAt?: string;
 }
 
@@ -16,6 +17,19 @@ export interface PostMutation {
   title: string;
   description?: string;
   image?: File | null;
+}
+
+export interface Comment {
+  _id: string;
+  user: PostUser | null;
+  post: string;
+  text: string;
+  createdAt: string;
+}
+
+export interface CommentMutation {
+  post: string;
+  text: string;
 }
 
 export interface Category {

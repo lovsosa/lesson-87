@@ -44,6 +44,7 @@ const Posts = () => {
                 {post.user?.username ?? 'Аноним'}
                 {post.createdAt &&
                   ` · ${dayjs(post.createdAt).format('DD.MM.YYYY HH:mm')}`}
+                {` · комментарии: ${post.commentsCount ?? 0}`}
                 {!post.image && (
                   <Badge bg="secondary" className="ms-2">
                     текст
