@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
-import { Card, Container, Spinner } from 'react-bootstrap';
+import { Badge, Card, Container, Spinner } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
+import dayjs from 'dayjs';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { getPosts } from './postsThunks';
 import { fetchLoading, posts } from './postsSlice';
@@ -33,14 +35,21 @@ const Posts = () => {
           <Card key={post._id}>
             <Card.Body>
               <div className="d-flex justify-content-between align-items-start gap-2">
-                <Card.Title className="mb-1">{post.title}</Card.Title>
+                <Card.Title className="mb-1">
+                  <Link to={`/posts/${post._id}`}>{post.title}</Link>
+                </Card.Title>
               </div>
 
-              {post.createdAt && (
-                <Card.Subtitle className="text-muted small mb-2">
-                  {new Date(post.createdAt).toLocaleString()}
-                </Card.Subtitle>
-              )}
+              <Card.Subtitle className="text-muted small mb-2">
+                {post.user?.username ?? 'Аноним'}
+                {post.createdAt &&
+                  ` · ${dayjs(post.createdAt).format('DD.MM.YYYY HH:mm')}`}
+                {!post.image && (
+                  <Badge bg="secondary" className="ms-2">
+                    текст
+                  </Badge>
+                )}
+              </Card.Subtitle>
 
               {post.image && (
                 <img

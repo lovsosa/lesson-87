@@ -1,3 +1,5 @@
+import { Types } from 'mongoose';
+
 export interface UserFields {
   username: string;
   password: string;
@@ -5,17 +7,16 @@ export interface UserFields {
 }
 
 export interface PostFields {
-  id: string;
-  user: string | null;
+  user: Types.ObjectId;
   title: string;
   description: string | null;
   image: string | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export type PostWithoutId = Omit<PostFields, 'id'>;
-
 export interface CommentFields {
-  user: string;
-  post: string;
+  user: Types.ObjectId;
+  post: Types.ObjectId;
   text: string;
 }

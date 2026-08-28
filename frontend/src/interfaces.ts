@@ -1,5 +1,11 @@
+export interface PostUser {
+  _id: string;
+  username: string;
+}
+
 export interface Post {
   _id: string;
+  user?: PostUser | null;
   title: string;
   description?: string;
   image?: string | null;

@@ -1,16 +1,20 @@
 import type { Post } from '../../interfaces.ts';
 import { createSlice } from '@reduxjs/toolkit';
-import { createPost, getPosts } from './postsThunks.ts';
+import { createPost, fetchOnePost, getPosts } from './postsThunks.ts';
 
 interface State {
   items: Post[];
+  onePost: Post | null;
   fetchLoading: boolean;
+  fetchOneLoading: boolean;
   createLoading: boolean;
 }
 
 const initialState: State = {
   items: [],
+  onePost: null,
   fetchLoading: false,
+  fetchOneLoading: false,
   createLoading: false,
 };
 
@@ -32,6 +36,19 @@ const postsSlice = createSlice({
       });
 
     builder
+      .addCase(fetchOnePost.pending, (state) => {
+        state.fetchOneLoading = true;
+        state.onePost = null;
+      })
+      .addCase(fetchOnePost.fulfilled, (state, { payload: post }) => {
+        state.fetchOneLoading = false;
+        state.onePost = post;
+      })
+      .addCase(fetchOnePost.rejected, (state) => {
+        state.fetchOneLoading = false;
+      });
+
+    builder
       .addCase(createPost.pending, (state) => {
         state.createLoading = true;
       })
@@ -44,10 +61,13 @@ const postsSlice = createSlice({
   },
   selectors: {
     posts: (state) => state.items,
+    onePost: (state) => state.onePost,
     fetchLoading: (state) => state.fetchLoading,
+    onePostLoading: (state) => state.fetchOneLoading,
     createLoading: (state) => state.createLoading,
   },
 });
 
 export const postsReducer = postsSlice.reducer;
-export const { posts, fetchLoading, createLoading } = postsSlice.selectors;
+export const { posts, onePost, fetchLoading, onePostLoading, createLoading } =
+  postsSlice.selectors;

@@ -1,13 +1,16 @@
-import { PostWithoutId } from './../types';
 import express from 'express';
+import mongoose from 'mongoose';
 import { imagesUpload } from '../multer';
 import Post from '../models/Post';
+import auth, { RequestWithUser } from '../middlewares/auth';
 
 const postsRouter = express.Router();
 
 postsRouter.get('/', async (_req, res) => {
   try {
-    const posts = await Post.find().sort({ createdAt: -1 });
+    const posts = await Post.find()
+      .sort({ createdAt: -1 })
+      .populate('user', 'username');
     res.send(posts);
   } catch {
     res.sendStatus(500);
@@ -16,7 +19,7 @@ postsRouter.get('/', async (_req, res) => {
 
 postsRouter.get('/:id', async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id);
+    const post = await Post.findById(req.params.id).populate('user', 'username');
 
     if (!post) {
       return res.status(404).send({ error: 'Post not found' });
@@ -28,31 +31,32 @@ postsRouter.get('/:id', async (req, res) => {
   }
 });
 
-postsRouter.post('/', imagesUpload.single('image'), async (req, res) => {
+postsRouter.post('/', auth, imagesUpload.single('image'), async (req, res) => {
+  const user = (req as RequestWithUser).user;
   const { title, description } = req.body;
 
   if (!title || (!description && !req.file)) {
     return res
       .status(400)
-      .send({ error: 'Title, description or image are required!' });
+      .send({ error: 'Title, and description or image are required!' });
   }
 
-  const newPost: PostWithoutId = {
-    user: null,
-    title,
-    description,
-    image: req.file ? req.file.filename : null,
-  };
-
   try {
-    const post = new Post(newPost);
+    const post = new Post({
+      user: user._id,
+      title,
+      description: description || null,
+      image: req.file ? req.file.filename : null,
+    });
+
     await post.save();
     res.send(post);
   } catch (e) {
-    if (e instanceof Error) {
-      return res.status(400).send({ message: e.message });
+    if (e instanceof mongoose.Error.ValidationError) {
+      return res.status(400).send(e);
     }
     res.sendStatus(500);
   }
 });
+
 export default postsRouter;
