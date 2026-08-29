@@ -24,3 +24,15 @@ export const createComment = createAsyncThunk<
     headers: { Authorization: token },
   });
 });
+
+export const deleteComment = createAsyncThunk<
+  void,
+  string,
+  { state: RootState }
+>('comments/delete', async (id, { getState }) => {
+  const token = getState().users.user?.token;
+
+  await axiosApi.delete(`/comments/${id}`, {
+    headers: { Authorization: token },
+  });
+});

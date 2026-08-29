@@ -76,4 +76,26 @@ postsRouter.post('/', auth, imagesUpload.single('image'), async (req, res) => {
   }
 });
 
+postsRouter.delete('/:id', auth, async (req, res) => {
+  try {
+    const user = (req as RequestWithUser).user;
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).send({ error: 'Post not found' });
+    }
+
+    if (String(post.user) !== String(user._id)) {
+      return res.status(403).send({ error: 'You can delete only your own post' });
+    }
+
+    await Comment.deleteMany({ post: post._id });
+    await post.deleteOne();
+
+    res.send({ message: 'Post deleted' });
+  } catch {
+    res.sendStatus(500);
+  }
+});
+
 export default postsRouter;

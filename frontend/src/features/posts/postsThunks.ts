@@ -37,3 +37,13 @@ export const createPost = createAsyncThunk<void, PostMutation, { state: RootStat
     });
   },
 );
+
+export const deletePost = createAsyncThunk<void, string, { state: RootState }>(
+  'posts/delete',
+  async (id, { getState }) => {
+    const token = getState().users.user?.token;
+    await axiosApi.delete(`/posts/${id}`, {
+      headers: { Authorization: token },
+    });
+  },
+);
